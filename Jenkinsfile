@@ -6,22 +6,18 @@ pipeline {
         checkout scm
       }
     }
-    stage('Install') {
+    stage('Build Docker Image') {
       steps {
-        sh 'npm ci'
+        sh 'docker build -t my-homepage .'
       }
     }
-    stage('Deploy') {
+    stage('Deploy Container') {
       steps {
-        sh 'pm2 stop myapp || true'
-        sh 'pm2 start index.js --name myapp --update-env'
-        sh 'pm2 save'
+        sh '''
+          docker rm -f homepage-container || true
+          docker run -d -p 4000:3000 --name homepage-container my-homepage
+        '''
       }
-    }
-  }
-  post {
-    always {
-      sh 'pm2 ls || true'
     }
   }
 }
